@@ -1,0 +1,220 @@
+{% extends 'core/index.html' %}
+{% load static %}
+
+
+{% block extra_head %}
+	<link rel="stylesheet" type="text/css" href="{% static 'styles/cart_styles.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'styles/cart_responsive.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'core_css/core_styles.css' %}">
+{% endblock extra_head %}
+
+{% block content %}
+	<div class="super_container">
+
+	<!-- Header -->
+	{% include 'header.html' %}
+	<!-- End Header -->
+
+	<!-- Cart -->
+
+	<div class="cart_section">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-10 offset-lg-1">
+					<div class="cart_container">
+						<div class="cart_title">Shopping Cart</div>
+						<div class="cart_items">
+							<ul class="cart_list">
+
+
+								<li class="cart_item clearfix">
+									<div class="cart_item_info d-flex flex-md-row flex-column justify-content-between">
+
+										<div class="cart_item_name cart_info_col">
+											<div class="cart_item_title"></div>
+
+										</div>
+
+										<div class="cart_item_name cart_info_col">
+											<div class="cart_item_title">Name</div>
+
+										</div>
+
+										<div class="cart_item_color cart_info_col">
+											<div class="cart_item_title">Color</div>
+										</div>
+
+										<div class="cart_item_quantity cart_info_col">
+											<div class="cart_item_title">Quantity</div>
+										</div>
+
+										<div class="cart_item_price cart_info_col">
+											<div class="cart_item_title">Price</div>
+										</div>
+
+										<div class="cart_item_total cart_info_col">
+											<div class="cart_item_title">Total</div>
+										</div>
+
+									</div>
+								</li>
+								<hr>
+
+						{% for order in orders %}
+								{% for cart_item in order.items.all %}
+
+
+
+								<li class="cart_item clearfix">
+									<div class="cart_item_image image-thumbnail"><img src="{{ cart_item.product.image.url }}" alt=""></div>
+
+									<div class="cart_item_info d-flex flex-md-row flex-column justify-content-between">
+
+										<div class="cart_item_name cart_info_col">
+											<div class=""><b>{{cart_item.product.title}}</b></div>
+
+										</div>
+
+										<div class="cart_item_color cart_info_col">
+											<div class="">Color</div>
+										</div>
+
+										<div class="cart_item_quantity cart_info_col">
+											<div><a class="add_to_cart_functionality" href=""><i class="fas fa-plus mr-2"></i></a><span class="cart_item_count"> {{ cart_item.quantity }} </span> <a href="" class="remove-from-cart-functionality"><i class="fas fa-minus ml-2"></i></a></div>
+										</div>
+
+										<div class="cart_item_price cart_info_col">
+											<div class=""><b class="cart_item_total_price">${{ cart_item.get_final_price }}</b></div>
+										</div>
+
+										<div class="cart_info_col">
+											<div class=""><a href="" class=""><i class="fas fa-cart-arrow-down"></i></a></div>
+										</div>
+
+										<script>
+
+
+											$('.cart_item_quantity').find('.remove-from-cart-functionality').get({{ forloop.counter0 }}).onclick = function(event){
+											    event.preventDefault();
+												$.ajax({
+													type: 'POST',
+													url : '{% url 'core:remove-from-cart'  %}',
+													data: {
+	                                                    product_id: "{{ cart_item.product.product_id }}",
+                                                        csrfmiddlewaretoken:"{{ csrf_token }}"
+													},
+													success: function(response){
+														if(response['quantity'] !== '0'){
+														    UpdateCartUI({{ forloop.counter0 }}, response);
+															UpdateNAVBAR();
+														} else{
+														    $('.cart_item_count').eq({{ forloop.counter0 }}).parent().parent().parent().parent().next().remove();
+														    $('.cart_item_count').eq({{ forloop.counter0 }}).parent().parent().parent().parent().remove();
+									                        $('.order_total_amount').get(0).innerText = response['order_total'];
+
+															UpdateNAVBAR();
+														}
+													}
+												})
+											}
+
+											$('.cart_item_quantity').find('.add_to_cart_functionality').get({{ forloop.counter0 }}).onclick = function(event){
+											    event.preventDefault();
+											    $.ajax({
+												    type: 'POST',
+												    url : {% url 'core:add-to-cart' %},
+												    data:{
+												        product_id: "{{ cart_item.product.product_id }}",
+													    csrfmiddlewaretoken: "{{ csrf_token }}"
+												    },
+													success: function(response) {
+                                                        UpdateCartUI({{ forloop.counter0 }}, response)
+														UpdateNAVBAR();
+												    }
+											    })
+											}
+										</script>
+									</div>
+								</li>
+								<hr>
+
+
+							{% endfor %}
+						{% endfor %}
+
+						</ul>
+						</div>
+
+
+
+{% comment %}
+		<div class="cart">
+			<div class="row">
+				<div class="col-md-3 cart_table_titles">
+
+				<span class="cart_table_titles_text"> Hi </span>
+
+				</div>
+
+				<div class="col-md-3 cart_table_titles">
+
+				<span class="cart_table_titles_text"> Quantity </span>
+
+				</div>
+
+				<div class="col-md-3 cart_table_titles">
+
+				<span class="cart_table_titles_text"> Price </span>
+
+				</div>
+
+				<div class="col-md-3 cart_table_titles">
+
+				<span class="cart_table_titles_text"> Total </span>
+
+				</div>
+
+
+
+			</div>
+		</div>
+{% endcomment %}
+						<!-- Order Total -->
+						<div class="order_total">
+							<div class="order_total_content text-md-right">
+								<div class="order_total_title">Order Total:</div>
+								<div class="order_total_amount">${{ ORDER_TOTAL }}</div>
+							</div>
+						</div>
+
+						<div class="cart_buttons">
+							<button type="button" class="button cart_button_clear">Continue shopping</button>
+							<button type="button" class="button cart_button_checkout">Proceed to checkout</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="cart"></div>
+	<!-- Newsletter -->
+	{% include 'newsletter.html' %}
+	<!-- End Newsletter -->
+
+	<!-- Footer -->
+		{% include 'footer.html' %}
+	<!-- End Footer -->
+
+	<!-- Copyright -->
+		{% include 'copyright.html' %}
+	<!-- End Copyright -->
+
+</div>
+{% endblock content %}
+
+
+{% block extra_scripts %}
+	<script src="{% static 'js/cart_custom.js' %}"></script>
+{% endblock extra_scripts %}
